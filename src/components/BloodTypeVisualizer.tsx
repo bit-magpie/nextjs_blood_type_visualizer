@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Users, Zap } from 'lucide-react';
+import { Heart, Users, Zap, User } from 'lucide-react';
 
 // Blood type data with compatibility information
 const bloodTypes = [
@@ -16,227 +16,167 @@ const bloodTypes = [
   { type: 'AB+', label: 'AB Positive', color: 'bg-purple-500', canDonateTo: ['AB+'], canReceiveFrom: ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'] },
 ];
 
-interface BloodTypeCardProps {
-  bloodType: typeof bloodTypes[0];
-  isSelected: boolean;
-  isCompatible: boolean;
-  onClick: () => void;
-  animationDelay: number;
-}
-
-const BloodTypeCard = ({ bloodType, isSelected, isCompatible, onClick, animationDelay }: BloodTypeCardProps) => {
+// Blood packet component - shaped like IV blood bags with blood type label
+const BloodPacket = ({ bloodType, isSelected, onClick }: { 
+  bloodType: typeof bloodTypes[0]; 
+  isSelected: boolean; 
+  onClick: () => void; 
+}) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ 
-        delay: animationDelay, 
-        duration: 0.6,
-        type: "spring",
-        stiffness: 100
-      }}
-      className={`
-        relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 group focus:outline-none focus:ring-4 focus:ring-blue-300
-        ${isSelected ? 'ring-4 ring-yellow-400 shadow-2xl scale-105' : ''}
-        ${isCompatible && !isSelected ? 'ring-3 ring-green-400 shadow-xl' : ''}
-        ${bloodType.color} text-white min-h-[120px] md:min-h-[140px]
-      `}
+      className="relative cursor-pointer"
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={`${bloodType.label} blood type ${isSelected ? '(selected)' : ''} ${isCompatible ? '(compatible)' : ''}`}
-      whileHover={{ 
-        scale: isSelected ? 1.05 : 1.08,
-        rotateY: 5,
-        transition: { duration: 0.3 }
-      }}
+      whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
-      style={{ transformStyle: "preserve-3d" }}
     >
-      <div className="p-4 md:p-6 h-full flex flex-col justify-between">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-xl md:text-2xl font-bold">{bloodType.type}</div>
-          <motion.div
-            animate={isSelected ? { rotate: [0, 10, -10, 0], scale: [1, 1.2, 1] } : {}}
-            transition={{ duration: 1, repeat: isSelected ? Infinity : 0, repeatDelay: 2 }}
-          >
-            <Heart className="w-5 h-5 md:w-6 md:h-6" />
-          </motion.div>
-        </div>
-        <div className="text-xs md:text-sm opacity-90 font-medium">{bloodType.label}</div>
-      </div>
-      
-      {/* Pulse animation for selected card */}
-      {isSelected && (
-        <motion.div
-          className="absolute inset-0 bg-white rounded-2xl"
-          animate={{
-            opacity: [0, 0.15, 0],
-            scale: [1, 1.02, 1]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      )}
-
-      {/* Compatibility glow */}
-      {isCompatible && !isSelected && (
-        <motion.div
-          className="absolute inset-0 bg-green-400 rounded-2xl"
-          animate={{
-            opacity: [0, 0.25, 0],
-          }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      )}
-
-      {/* Hover shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-    </motion.div>
-  );
-};
-
-const CompatibilityVisualization = ({ selectedType, mode }: { selectedType: typeof bloodTypes[0], mode: 'donor' | 'recipient' }) => {
-  const compatibleTypes = mode === 'donor' ? selectedType.canDonateTo : selectedType.canReceiveFrom;
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -30, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -30, scale: 0.95 }}
-      transition={{ 
-        duration: 0.6,
-        type: "spring",
-        stiffness: 100
-      }}
-      className="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100"
-    >
-      <motion.div 
-        className="text-center mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
+      {/* Blood packet shape */}
+      <motion.div
+        className={`
+          relative w-24 h-32 md:w-32 md:h-40 rounded-t-full rounded-b-lg ${bloodType.color} 
+          shadow-2xl border-4 border-white
+          ${isSelected ? 'ring-4 ring-yellow-400' : ''}
+        `}
+        animate={isSelected ? { 
+          scale: [1, 1.05, 1],
+          boxShadow: ['0 0 0 0 rgba(239, 68, 68, 0.7)', '0 0 0 20px rgba(239, 68, 68, 0)', '0 0 0 0 rgba(239, 68, 68, 0)']
+        } : {}}
+        transition={{ duration: 2, repeat: isSelected ? Infinity : 0 }}
       >
-        <motion.h3 
-          className="text-2xl md:text-3xl font-bold text-gray-800 mb-3"
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {mode === 'donor' ? `${selectedType.type} can donate to:` : `${selectedType.type} can receive from:`}
-        </motion.h3>
-        <div className="flex items-center justify-center gap-2 text-gray-600">
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          >
-            {mode === 'donor' ? <Users className="w-5 h-5" /> : <Heart className="w-5 h-5" />}
-          </motion.div>
-          <span className="font-medium">{compatibleTypes.length} compatible blood types</span>
+        {/* Blood packet tube at top */}
+        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-3 h-6 md:w-4 md:h-8 bg-gray-300 rounded-t-md border-2 border-white"></div>
+        
+        {/* Blood type label */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="bg-white bg-opacity-90 rounded-lg p-1 md:p-2 shadow-md">
+            <div className="text-lg md:text-2xl font-bold text-gray-800">{bloodType.type}</div>
+          </div>
         </div>
+        
+        {/* Liquid animation inside packet */}
+        {isSelected && (
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 bg-red-400 rounded-b-lg opacity-70"
+            animate={{ height: ['20%', '80%', '20%'] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
       </motion.div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {compatibleTypes.map((type, index) => {
-          const bloodTypeData = bloodTypes.find(bt => bt.type === type)!;
-          return (
-            <motion.div
-              key={type}
-              initial={{ opacity: 0, x: -30, rotateY: -90 }}
-              animate={{ opacity: 1, x: 0, rotateY: 0 }}
-              transition={{ 
-                delay: index * 0.15, 
-                duration: 0.5,
-                type: "spring",
-                stiffness: 120
-              }}
-              whileHover={{ 
-                scale: 1.1,
-                rotateY: 10,
-                transition: { duration: 0.3 }
-              }}
-              className={`${bloodTypeData.color} text-white p-4 rounded-xl text-center font-bold shadow-lg cursor-pointer transform hover:shadow-xl`}
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ 
-                  delay: index * 0.3,
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                {type}
-              </motion.div>
-            </motion.div>
-          );
-        })}
-      </div>
     </motion.div>
   );
 };
 
-const BloodTypeStats = ({ bloodType }: { bloodType: typeof bloodTypes[0] }) => {
-  const donorCount = bloodType.canDonateTo.length;
-  const recipientCount = bloodType.canReceiveFrom.length;
-  const isUniversalDonor = bloodType.type === 'O-';
-  const isUniversalRecipient = bloodType.type === 'AB+';
-  
+// Human icon component for vertical lines
+const HumanIcon = ({ bloodType, isActive, position, side }: { 
+  bloodType: string; 
+  isActive: boolean; 
+  position: number;
+  side: 'left' | 'right';
+}) => {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 shadow-xl border border-indigo-200 mb-8"
+      className="relative flex flex-col items-center mb-4"
+      initial={{ opacity: 0.3, scale: 0.8 }}
+      animate={{ 
+        opacity: isActive ? 1 : 0.3,
+        scale: isActive ? 1.1 : 0.8,
+      }}
+      transition={{ duration: 0.5 }}
     >
-      <h4 className="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
-        <motion.div
-          animate={{ rotate: [0, 360] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        >
-          📊
-        </motion.div>
-        {bloodType.type} Statistics
-      </h4>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">{donorCount}</div>
-          <div className="text-sm text-gray-600">Can donate to</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">{recipientCount}</div>
-          <div className="text-sm text-gray-600">Can receive from</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">
-            {isUniversalDonor ? '🎯' : isUniversalRecipient ? '🎁' : '🩸'}
-          </div>
-          <div className="text-sm text-gray-600">
-            {isUniversalDonor ? 'Universal Donor' : isUniversalRecipient ? 'Universal Recipient' : 'Standard Type'}
-          </div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-orange-600">
-            {Math.round((donorCount / 8) * 100)}%
-          </div>
-          <div className="text-sm text-gray-600">Compatibility</div>
-        </div>
-      </div>
+      <motion.div
+        className={`
+          w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold
+          ${isActive ? 'bg-red-500 shadow-lg' : 'bg-gray-400'}
+        `}
+        animate={isActive ? { 
+          boxShadow: ['0 0 0 0 rgba(239, 68, 68, 0.7)', '0 0 0 15px rgba(239, 68, 68, 0)']
+        } : {}}
+        transition={{ duration: 1.5, repeat: isActive ? Infinity : 0 }}
+      >
+        <User className="w-5 h-5 md:w-6 md:h-6" />
+      </motion.div>
+      <div className="text-xs font-semibold mt-1 text-gray-700">{bloodType}</div>
     </motion.div>
+  );
+};
+
+// Animated blood flow from packet to human icons
+const BloodFlow = ({ 
+  from, 
+  to, 
+  isActive, 
+  delay = 0 
+}: { 
+  from: { x: number; y: number }; 
+  to: { x: number; y: number }; 
+  isActive: boolean;
+  delay?: number;
+}) => {
+  if (!isActive) return null;
+
+  return (
+    <svg
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 1 }}
+    >
+      <defs>
+        <marker
+          id={`arrowhead-${delay}`}
+          markerWidth="10"
+          markerHeight="7"
+          refX="10"
+          refY="3.5"
+          orient="auto"
+        >
+          <polygon
+            points="0 0, 10 3.5, 0 7"
+            fill="#dc2626"
+          />
+        </marker>
+      </defs>
+      
+      {/* Animated blood flow line */}
+      <motion.line
+        x1={from.x}
+        y1={from.y}
+        x2={to.x}
+        y2={to.y}
+        stroke="#ef4444"
+        strokeWidth="3"
+        strokeDasharray="8,4"
+        markerEnd={`url(#arrowhead-${delay})`}
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ 
+          duration: 1.5, 
+          delay,
+          repeat: Infinity,
+          repeatType: "loop",
+          ease: "easeInOut"
+        }}
+      />
+      
+      {/* Animated blood droplets */}
+      <motion.circle
+        r="4"
+        fill="#dc2626"
+        initial={{ 
+          x: from.x,
+          y: from.y,
+          opacity: 0
+        }}
+        animate={{ 
+          x: to.x,
+          y: to.y,
+          opacity: [0, 1, 1, 0]
+        }}
+        transition={{ 
+          duration: 2, 
+          delay,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+    </svg>
   );
 };
 
@@ -244,8 +184,12 @@ export default function BloodTypeVisualizer() {
   const [selectedBloodType, setSelectedBloodType] = useState<typeof bloodTypes[0] | null>(null);
   const [mode, setMode] = useState<'donor' | 'recipient'>('donor');
 
-  const getCompatibleTypes = (bloodType: typeof bloodTypes[0]) => {
-    return mode === 'donor' ? bloodType.canDonateTo : bloodType.canReceiveFrom;
+  const getDonorTypes = (bloodType: typeof bloodTypes[0]) => {
+    return bloodTypes.filter(bt => bt.canDonateTo.includes(bloodType.type));
+  };
+
+  const getRecipientTypes = (bloodType: typeof bloodTypes[0]) => {
+    return bloodTypes.filter(bt => bloodType.canDonateTo.includes(bt.type));
   };
 
   return (
@@ -260,7 +204,7 @@ export default function BloodTypeVisualizer() {
         <div className="bg-white rounded-2xl p-2 shadow-xl border border-gray-100">
           <motion.button
             onClick={() => setMode('donor')}
-            className={`px-6 py-4 rounded-xl font-bold transition-all duration-300 flex items-center gap-3 ${
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 md:gap-3 text-sm md:text-base ${
               mode === 'donor' 
                 ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
@@ -268,17 +212,12 @@ export default function BloodTypeVisualizer() {
             whileHover={{ scale: mode === 'donor' ? 1.05 : 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              animate={mode === 'donor' ? { rotate: [0, 10, -10, 0] } : {}}
-              transition={{ duration: 1.5, repeat: mode === 'donor' ? Infinity : 0, repeatDelay: 3 }}
-            >
-              <Users className="w-5 h-5" />
-            </motion.div>
-            Donor Mode
+            <Users className="w-4 h-4 md:w-5 md:h-5" />
+            Show Donors
           </motion.button>
           <motion.button
             onClick={() => setMode('recipient')}
-            className={`px-6 py-4 rounded-xl font-bold transition-all duration-300 flex items-center gap-3 ${
+            className={`px-4 md:px-6 py-3 md:py-4 rounded-xl font-bold transition-all duration-300 flex items-center gap-2 md:gap-3 text-sm md:text-base ${
               mode === 'recipient' 
                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transform scale-105' 
                 : 'text-gray-600 hover:text-blue-500 hover:bg-blue-50'
@@ -286,13 +225,8 @@ export default function BloodTypeVisualizer() {
             whileHover={{ scale: mode === 'recipient' ? 1.05 : 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              animate={mode === 'recipient' ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 1.5, repeat: mode === 'recipient' ? Infinity : 0, repeatDelay: 2 }}
-            >
-              <Heart className="w-5 h-5" />
-            </motion.div>
-            Recipient Mode
+            <Heart className="w-4 h-4 md:w-5 md:h-5" />
+            Show Recipients
           </motion.button>
         </div>
       </motion.div>
@@ -305,127 +239,168 @@ export default function BloodTypeVisualizer() {
         transition={{ delay: 0.3, duration: 0.5 }}
       >
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 shadow-lg inline-block border border-yellow-200">
-          <p className="text-gray-700 flex items-center gap-2 font-medium">
-            <motion.div
-              animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Zap className="w-5 h-5 text-yellow-500" />
-            </motion.div>
-            Click on a blood type to see compatibility
+          <p className="text-gray-700 flex items-center gap-2 font-medium text-sm md:text-base">
+            <Zap className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
+            Click on a blood packet to see compatibility flow
           </p>
         </div>
       </motion.div>
 
-      {/* Reset Selection Button */}
-      {selectedBloodType && (
-        <motion.div 
-          className="flex justify-center mb-8"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-        >
-          <motion.button
-            onClick={() => setSelectedBloodType(null)}
-            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+      {/* Blood packet selector */}
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-4 mb-8 justify-center">
+        {bloodTypes.map((bloodType, index) => (
+          <motion.div
+            key={bloodType.type}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.5 }}
+            className="flex justify-center"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Clear Selection
-          </motion.button>
-        </motion.div>
-      )}
+            <BloodPacket
+              bloodType={bloodType}
+              isSelected={selectedBloodType?.type === bloodType.type}
+              onClick={() => setSelectedBloodType(bloodType)}
+            />
+          </motion.div>
+        ))}
+      </div>
 
-      {/* Compatibility Visualization */}
-      <AnimatePresence mode="wait">
+      {/* Main visualization area with blood packet in middle and vertical lines of humans */}
+      <AnimatePresence>
         {selectedBloodType && (
-          <>
-            <BloodTypeStats bloodType={selectedBloodType} />
-            <CompatibilityVisualization selectedType={selectedBloodType} mode={mode} />
-          </>
+          <motion.div
+            className="relative bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-4 md:p-8 shadow-2xl border border-blue-200 min-h-[500px] md:min-h-[600px] overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Central blood packet */}
+            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+              <BloodPacket
+                bloodType={selectedBloodType}
+                isSelected={true}
+                onClick={() => {}}
+              />
+            </div>
+
+            {/* Left vertical line of human icons */}
+            <div className="absolute left-2 md:left-8 top-8 bottom-20 w-20 md:w-32">
+              <div className="text-center mb-4">
+                <h3 className="text-sm md:text-xl font-bold text-gray-800">
+                  {mode === 'donor' ? 'Sources' : 'Can Give To'}
+                </h3>
+              </div>
+              <div className="space-y-2 md:space-y-4 max-h-96 overflow-y-auto">
+                {(mode === 'donor' ? selectedBloodType.canReceiveFrom : getRecipientTypes(selectedBloodType).map(bt => bt.type))
+                  .slice(0, 8)
+                  .map((type, index) => (
+                    <motion.div
+                      key={type}
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.2, duration: 0.5 }}
+                    >
+                      <HumanIcon
+                        bloodType={type}
+                        isActive={true}
+                        position={index}
+                        side="left"
+                      />
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Right vertical line of human icons */}
+            <div className="absolute right-2 md:right-8 top-8 bottom-20 w-20 md:w-32">
+              <div className="text-center mb-4">
+                <h3 className="text-sm md:text-xl font-bold text-gray-800">
+                  {mode === 'donor' ? 'Recipients' : 'Sources'}
+                </h3>
+              </div>
+              <div className="space-y-2 md:space-y-4 max-h-96 overflow-y-auto">
+                {(mode === 'donor' ? selectedBloodType.canDonateTo : getDonorTypes(selectedBloodType).map(bt => bt.type))
+                  .slice(0, 8)
+                  .map((type, index) => (
+                    <motion.div
+                      key={type}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.2, duration: 0.5 }}
+                    >
+                      <HumanIcon
+                        bloodType={type}
+                        isActive={true}
+                        position={index}
+                        side="right"
+                      />
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Animated blood flows from center packet to right humans */}
+            {(mode === 'donor' ? selectedBloodType.canDonateTo : getDonorTypes(selectedBloodType).map(bt => bt.type))
+              .slice(0, 8)
+              .map((type, index) => (
+                <BloodFlow
+                  key={`flow-right-${type}-${index}`}
+                  from={{ x: typeof window !== 'undefined' && window.innerWidth < 768 ? 200 : 400, y: typeof window !== 'undefined' && window.innerWidth < 768 ? 250 : 300 }}
+                  to={{ x: typeof window !== 'undefined' && window.innerWidth < 768 ? 320 : 600, y: 120 + index * (typeof window !== 'undefined' && window.innerWidth < 768 ? 50 : 60) }}
+                  isActive={true}
+                  delay={index * 0.3}
+                />
+              ))}
+
+            {/* Animated blood flows from left humans to center packet */}
+            {(mode === 'donor' ? selectedBloodType.canReceiveFrom : getRecipientTypes(selectedBloodType).map(bt => bt.type))
+              .slice(0, 8)
+              .map((type, index) => (
+                <BloodFlow
+                  key={`flow-left-${type}-${index}`}
+                  from={{ x: typeof window !== 'undefined' && window.innerWidth < 768 ? 80 : 120, y: 120 + index * (typeof window !== 'undefined' && window.innerWidth < 768 ? 50 : 60) }}
+                  to={{ x: typeof window !== 'undefined' && window.innerWidth < 768 ? 200 : 400, y: typeof window !== 'undefined' && window.innerWidth < 768 ? 250 : 300 }}
+                  isActive={true}
+                  delay={index * 0.3 + 0.5}
+                />
+              ))}
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Blood Type Stats */}
-      {selectedBloodType && (
-        <BloodTypeStats bloodType={selectedBloodType} />
-      )}
-
-      {/* Blood Type Grid */}
-      <motion.div 
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-      >
-        {bloodTypes.map((bloodType, index) => (
-          <BloodTypeCard
-            key={bloodType.type}
-            bloodType={bloodType}
-            isSelected={selectedBloodType?.type === bloodType.type}
-            isCompatible={selectedBloodType ? getCompatibleTypes(selectedBloodType).includes(bloodType.type) : false}
-            onClick={() => setSelectedBloodType(bloodType)}
-            animationDelay={index * 0.1}
-          />
-        ))}
-      </motion.div>
-
       {/* Educational Information */}
       <motion.div 
-        className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 lg:p-8 shadow-xl border border-purple-100"
+        className="mt-8 md:mt-12 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-4 md:p-6 lg:p-8 shadow-xl border border-purple-100"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.8 }}
       >
-        <motion.h3 
-          className="text-2xl lg:text-3xl font-bold text-gray-800 mb-6 text-center"
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
+        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 md:mb-6 text-center">
           Blood Donation Facts
-        </motion.h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <motion.div 
-            className="bg-white rounded-xl p-6 shadow-lg border border-red-100 hover:shadow-xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h4 className="font-bold text-xl text-red-600 mb-3 flex items-center gap-2">
-              <Heart className="w-6 h-6" />
+        </h3>
+        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-red-100 hover:shadow-xl">
+            <h4 className="font-bold text-lg md:text-xl text-red-600 mb-2 md:mb-3 flex items-center gap-2">
+              <Heart className="w-5 h-5 md:w-6 md:h-6" />
               Universal Donors
             </h4>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed text-sm md:text-base">
               <span className="font-semibold text-red-700">O- (O Negative)</span> is the universal donor. 
               People with O- blood can donate to anyone, making them incredibly valuable in emergencies.
             </p>
-          </motion.div>
-          <motion.div 
-            className="bg-white rounded-xl p-6 shadow-lg border border-purple-100 hover:shadow-xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h4 className="font-bold text-xl text-purple-600 mb-3 flex items-center gap-2">
-              <Users className="w-6 h-6" />
+          </div>
+          <div className="bg-white rounded-xl p-4 md:p-6 shadow-lg border border-purple-100 hover:shadow-xl">
+            <h4 className="font-bold text-lg md:text-xl text-purple-600 mb-2 md:mb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 md:w-6 md:h-6" />
               Universal Recipients
             </h4>
-            <p className="text-gray-700 leading-relaxed">
+            <p className="text-gray-700 leading-relaxed text-sm md:text-base">
               <span className="font-semibold text-purple-700">AB+ (AB Positive)</span> is the universal recipient. 
               People with AB+ blood can receive blood from anyone, but can only donate to other AB+ individuals.
             </p>
-          </motion.div>
+          </div>
         </div>
-        <motion.div 
-          className="mt-6 text-center"
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <p className="text-sm lg:text-base text-gray-600 font-medium">
-            ❤️ Every 2 seconds, someone in the US needs blood. Your donation can save up to 3 lives! ❤️
-          </p>
-        </motion.div>
       </motion.div>
     </div>
   );
