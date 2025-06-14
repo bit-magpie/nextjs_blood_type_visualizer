@@ -66,11 +66,9 @@ const BloodPacket = ({ bloodType, isSelected, onClick }: {
 };
 
 // Human icon component for vertical lines
-const HumanIcon = ({ bloodType, isActive, position, side }: { 
+const HumanIcon = ({ bloodType, isActive }: { 
   bloodType: string; 
   isActive: boolean; 
-  position: number;
-  side: 'left' | 'right';
 }) => {
   return (
     <motion.div
@@ -304,8 +302,6 @@ export default function BloodTypeVisualizer() {
                       <HumanIcon
                         bloodType={type}
                         isActive={true}
-                        position={index}
-                        side="left"
                       />
                     </motion.div>
                   ))}
@@ -332,8 +328,6 @@ export default function BloodTypeVisualizer() {
                       <HumanIcon
                         bloodType={type}
                         isActive={true}
-                        position={index}
-                        side="right"
                       />
                     </motion.div>
                   ))}
